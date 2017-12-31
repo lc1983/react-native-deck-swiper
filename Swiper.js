@@ -249,7 +249,9 @@ class Swiper extends Component {
     }
 
     if (!this.state.slideGesture) {
-      this.props.onTapCard(this.state.firstCardIndex)
+      const { locationX, locationY } = e.nativeEvent
+      this.props.onTapCard({ x: locationX, y: locationY }, this.state.firstCardIndex)
+      this.resetPanAndScale()
     }
 
     this.setState({
@@ -426,8 +428,9 @@ class Swiper extends Component {
       swipedAllCards = true
     }
 
-    this.onSwipedCallbacks(onSwiped, swipedAllCards)
-    this.setCardIndex(newCardIndex, swipedAllCards)
+    const previousCardIndex = this.onSwipedCallbacks(onSwiped, swipedAllCards)
+    const onPostSwiped = () => this.props.onPostSwiped(previousCardIndex)
+    this.setCardIndex(newCardIndex, swipedAllCards, onPostSwiped)
   }
 
   decrementCardIndex = cb => {
@@ -457,16 +460,21 @@ class Swiper extends Component {
     if (swipedAllCards) {
       this.props.onSwipedAll()
     }
+
+    return previousCardIndex
   }
 
-  setCardIndex = (newCardIndex, swipedAllCards) => {
+  setCardIndex = (newCardIndex, swipedAllCards, postCardIndexChangeFunc) => {
     this.setState(
       {
         ...this.calculateCardIndexes(newCardIndex, this.state.cards),
         swipedAllCards: swipedAllCards,
         panResponderLocked: false
       },
-      this.resetPanAndScale
+      () => {
+        this.resetPanAndScale()
+        postCardIndexChangeFunc && postCardIndexChangeFunc()
+      }
     )
   }
 
@@ -661,7 +669,7 @@ class Swiper extends Component {
     const lastCardOrSwipedAllCards =
       secondCardIndex === 0 || this.state.swipedAllCards
     if (notInfinite && lastCardOrSwipedAllCards) {
-      return <Animated.View key={secondCardIndex} />
+      return <Animated.View />
     }
 
     return (
@@ -761,6 +769,7 @@ Swiper.propTypes = {
   onSwipedRight: PropTypes.func,
   onSwipedTop: PropTypes.func,
   onTapCard: PropTypes.func,
+  onPostSwiped: PropTypes.func,
   onTapCardDeadZone: PropTypes.number,
   outputCardOpacityRangeX: PropTypes.array,
   outputCardOpacityRangeY: PropTypes.array,
@@ -828,25 +837,28 @@ Swiper.defaultProps = {
   marginBottom: 0,
   marginTop: 0,
   onSwiped: cardIndex => {
-    console.log(cardIndex)
+    //console.log(cardIndex)
   },
   onSwipedLeft: cardIndex => {
-    console.log('onSwipedLeft')
+    //console.log('onSwipedLeft')
   },
   onSwipedRight: cardIndex => {
-    console.log('onSwipedRight')
+    //console.log('onSwipedRight')
   },
   onSwipedTop: cardIndex => {
-    console.log('onSwipedTop')
+    //console.log('onSwipedTop')
   },
   onSwipedBottom: cardIndex => {
-    console.log('onSwipedBottom')
+    //console.log('onSwipedBottom')
   },
   onSwipedAll: () => {
-    console.log('onSwipedAll')
+    //console.log('onSwipedAll')
   },
   onTapCard: (cardIndex) => {
-    console.log('Tapped card at ' + cardIndex)
+    //console.log('Tapped card at ' + cardIndex)
+  },
+  onPostSwiped: cardIndex => {
+    //console.log('onPostSwiped')
   },
   onTapCardDeadZone: 5,
   outputCardOpacityRangeX: [0.8, 1, 1, 1, 0.8],
