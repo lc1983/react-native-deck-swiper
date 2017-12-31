@@ -15,6 +15,57 @@ const LABEL_TYPES = {
   BOTTOM: 'bottom'
 }
 
+class PaginationBar extends Component {
+  render() {
+    const { width, pageCount, currentPageIndex, backgroundColor, knobColor } = this.props
+    const marginHorizontal = 10
+    const marginVertical = 6
+    const barWidth = width - 2 * marginHorizontal
+
+    const containerStyle = {
+      position: 'absolute',
+      left: marginHorizontal,
+      top: marginVertical,
+      width: barWidth,
+      height: 6,
+      borderWidth: 1,
+      borderRadius: 20,
+      backgroundColor: pageCount <= 1 ? 'transparent' : backgroundColor,
+      borderColor: pageCount <= 1 ? 'transparent' : backgroundColor
+    }
+
+    const knobStyle = {
+      position: 'absolute',
+      top: -1,
+      left: barWidth * 1.0 / pageCount * currentPageIndex - 1,
+      width: barWidth * 1.0 / pageCount,
+      height: 6,
+      borderWidth: 1,
+      borderRadius: 20,
+      backgroundColor: knobColor,
+      borderColor: knobColor
+    }
+
+    const knob = pageCount > 1 && (
+      <View style={knobStyle} />
+    )
+
+    return (
+      <View style={containerStyle}>
+        {knob}
+      </View>
+    )
+  }
+}
+
+PaginationBar.propTypes = {
+  width: PropTypes.number.isRequired,
+  pageCount: PropTypes.number.isRequired,
+  currentPageIndex: PropTypes.number.isRequired,
+  backgroundColor: PropTypes.string.isRequired,
+  knobColor: PropTypes.string.isRequired
+}
+
 class Swiper extends Component {
   constructor (props) {
     super(props)
@@ -639,6 +690,7 @@ class Swiper extends Component {
     const firstCardContent = cards[firstCardIndex]
     const firstCard = this.props.renderCard(firstCardContent)
     const renderOverlayLabel = this.renderOverlayLabel()
+    const renderPaginationBar = this.renderPaginationBar()
 
     const notInfinite = !this.props.infinite
     if (notInfinite && this.state.swipedAllCards) {
@@ -653,7 +705,20 @@ class Swiper extends Component {
       >
         {renderOverlayLabel}
         {firstCard}
+        {renderPaginationBar}
       </Animated.View>
+    )
+  }
+
+  renderPaginationBar = () => {
+    return (
+      <PaginationBar
+        width={this.cardStyle.width}
+        pageCount={this.state.cards.length}
+        currentPageIndex={this.state.firstCardIndex}
+        backgroundColor={this.props.paginationBarBackgroundColor}
+        knobColor={this.props.paginationBarKnobColor}
+      />
     )
   }
 
@@ -798,7 +863,9 @@ Swiper.propTypes = {
   goBackToPreviousCardOnSwipeLeft: PropTypes.bool,
   goBackToPreviousCardOnSwipeRight: PropTypes.bool,
   goBackToPreviousCardOnSwipeTop: PropTypes.bool,
-  goBackToPreviousCardOnSwipeBottom: PropTypes.bool
+  goBackToPreviousCardOnSwipeBottom: PropTypes.bool,
+  paginationBarBackgroundColor: PropTypes.string,
+  paginationBarKnobColor: PropTypes.string
 }
 
 Swiper.defaultProps = {
@@ -899,7 +966,9 @@ Swiper.defaultProps = {
   goBackToPreviousCardOnSwipeLeft: false,
   goBackToPreviousCardOnSwipeRight: false,
   goBackToPreviousCardOnSwipeTop: false,
-  goBackToPreviousCardOnSwipeBottom: false
+  goBackToPreviousCardOnSwipeBottom: false,
+  paginationBarBackgroundColor: 'rgba(116,116,116, 0.6)',
+  paginationBarKnobColor: 'white'
 }
 
 export default Swiper
